@@ -36,3 +36,7 @@ $RECYCLE.BIN/
 
 # sfdx scratch org configs
 config/
+
+
+# VS Code configs
+.vscode/
