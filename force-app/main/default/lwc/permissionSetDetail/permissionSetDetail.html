@@ -1,0 +1,82 @@
+<template>
+    <lightning-card>
+        <div
+            if:false={permissionSet} 
+            class="slds-illustration slds-illustration_small">
+            <img 
+                src="/img/chatter/Desert.svg" 
+                class="slds-illustration__svg"/>
+            <div class="slds-text-color_weak">
+                <h3 class="slds-text-heading_small">Please select a permission set to see its details</h3>
+            </div>
+        </div>
+
+        <lightning-layout 
+            multiple-rows
+            if:true={permissionSet}
+            class="slds-form slds-p-horizontal_medium">
+            <lightning-layout-item 
+                size="6"
+                class="slds-p-right_x-small">
+                <div class="slds-form-element slds-form-element_stacked">
+                    <label 
+                        for="label"
+                        class="slds-form-element__label">
+                        Label
+                    </label>
+                    <div class="slds-form-element__control">
+                        <lightning-formatted-text 
+                            id="label"
+                            value={permissionSet.label}>
+                        </lightning-formatted-text>
+                    </div>
+                </div>
+            </lightning-layout-item>
+            <lightning-layout-item 
+                size="6"
+                class="slds-p-left_x-small">
+                <div class="slds-form-element slds-form-element_stacked">
+                    <label 
+                        for="name"
+                        class="slds-form-element__label">
+                        API Name
+                    </label>
+                    <div class="slds-form-element__control">
+                        <lightning-formatted-text 
+                            id="name"
+                            value={permissionSet.name}>
+                        </lightning-formatted-text>
+                    </div>
+                </div>
+            </lightning-layout-item>
+            <lightning-layout-item size="12">
+                <div class="slds-form-element slds-form-element_stacked">
+                    <label 
+                        for="description"
+                        class="slds-form-element__label">
+                        Description
+                    </label>
+                    <div class="slds-form-element__control">
+                        <lightning-formatted-text 
+                            id="description"
+                            value={permissionSet.description}>
+                        </lightning-formatted-text>
+
+                        <!-- Take up the space of a description for consistent component sizing -->
+                        <span 
+                            if:false={permissionSet.description} 
+                            class="slds-hidden">
+                            No description
+                        </span>
+                    </div>
+                </div>
+            </lightning-layout-item>
+        </lightning-layout>
+
+        <lightning-spinner
+            if:true={isLoading}
+            variant="brand" 
+            alternative-text="Loading">
+        </lightning-spinner>
+    </lightning-card>
+</template>

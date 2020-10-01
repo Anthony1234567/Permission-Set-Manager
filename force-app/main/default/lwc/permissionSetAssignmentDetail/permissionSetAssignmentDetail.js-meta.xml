@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata" fqn="permissionSetAssignmentDetail">
+    <masterLabel>Permission Set Assignment Detail</masterLabel>
+    <description>Gives users the ability to create permission set assignment settings or update existing settings</description>
+    <apiVersion>46.0</apiVersion>
+    <isExposed>false</isExposed>
+</LightningComponentBundle>

@@ -1,0 +1,95 @@
+<template>
+    <lightning-card>
+        <!-- Title -->
+        <h3 slot="title">
+            <!-- span tag used here to create rounded square shape of the same color under the icon -->
+            <span 
+                class="slds-icon_container slds-icon-standard-apex" 
+                title="Permission Sets">
+                <lightning-icon 
+                    icon-name="action:manage_perm_sets" 
+                    size="small"
+                    alternative-text="Permission Sets">
+                </lightning-icon>
+            </span>
+            <span class="slds-p-horizontal_small">
+                <b>Permission Sets</b>
+            </span>
+        </h3>
+
+        <lightning-combobox
+            slot="actions"
+            name="listView"
+            variant="label-hidden"
+            value={listView}
+            options={listViewOptions}
+            onchange={handleChange}>
+        </lightning-combobox>
+
+        <div class="slds-p-horizontal_large">
+            <lightning-input
+                name="permissionSetSearch"
+                type="search"
+                variant="label-hidden"
+                autocomplete="off"
+                placeholder="Search this list..."
+                onchange={handleChange}>
+            </lightning-input>
+        </div>
+        
+        <div 
+            class="slds-m-top_medium slds-p-horizontal_xxx-small" 
+            style="max-height: 65vh; overflow: auto;">
+            <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_fixed-layout slds-scrollable_y">
+                <thead>
+                    <tr class="slds-line-height_reset">
+                        <th scope="col">
+                            <div 
+                                class="slds-truncate" 
+                                title="Permission Set Label">
+                                Permission Set Label
+                            </div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr 
+                        for:each={displayedPermissionSets}
+                        for:item="permissionSet"
+                        key={permissionSet.id} 
+                        data-permission-set-name={permissionSet.name}
+                        onclick={handleClick}
+                        class="slds-hint-parent">
+                        <td data-label="Permission Set Label">
+                            <div 
+                                title={permissionSet.label}
+                                class="slds-truncate">
+                                <a 
+                                    href={permissionSet.href}
+                                    target="_blank">
+                                    {permissionSet.label}
+                                </a>
+                                <p title={permissionSet.description}>
+                                    {permissionSet.description}
+
+                                    <!-- Take up the space of a description for consistent component sizing -->
+                                    <span 
+                                        if:false={permissionSet.description} 
+                                        class="slds-hidden">
+                                        No description
+                                    </span>
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <center 
+                if:false={displayedPermissionSets}
+                class="slds-p-around_small">
+                No items to display.
+            </center>
+        </div>
+    </lightning-card>
+</template>

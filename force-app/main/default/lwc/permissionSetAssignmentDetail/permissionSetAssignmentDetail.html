@@ -1,0 +1,132 @@
+<template>
+    <lightning-spinner
+        if:true={isLoading}
+        variant="brand" 
+        alternative-text="Loading"
+        class="slds-is-relative slds-align_absolute-center">
+    </lightning-spinner>
+
+    <!-- Initial state. Shown when the user has not selected a permission set from c-permission-set-list-view -->
+    <div
+        if:false={permissionSetName} 
+        class="slds-illustration slds-illustration_small">
+        <img 
+            src="/img/chatter/Desert.svg" 
+            class="slds-illustration__svg"/>
+        <div class="slds-text-color_weak">
+            <h3 class="slds-text-heading_small">Please select a permission set to see its assignment settings</h3>
+        </div>
+    </div>
+
+    <!-- Shown when there is no assignment setting CMT record for the given permission set -->
+    <lightning-layout
+        multiple-rows
+        if:true={isEmptyState}>
+        <lightning-layout-item
+            size="12"
+            class="slds-text-color_weak slds-align_absolute-center">
+            <h3 class="slds-text-heading_small">This permission set is being assigned manually</h3>
+        </lightning-layout-item>
+        <lightning-layout-item
+            size="12"
+            class="slds-text-color_weak slds-align_absolute-center">
+            <p class="slds-text-body_regular">Please click the button below to manage assignments for this permission set</p>
+        </lightning-layout-item>
+        <lightning-layout-item
+            size="12"
+            class="slds-align_absolute-center slds-m-top_small">
+            <lightning-button 
+                name="manageAssignmentsNew"
+                variant="brand" 
+                label="Manage Assignments" 
+                onclick={handleClick}>
+            </lightning-button>
+        </lightning-layout-item>
+    </lightning-layout>
+
+    <!-- Permission set assignment settings field values -->
+    <lightning-layout 
+        if:true={permissionSetAssignmentSetting}
+        class="slds-form slds-p-horizontal_small">
+        <lightning-layout-item 
+            size="6"
+            class="slds-p-right_x-small">
+            <lightning-layout>
+                <lightning-layout-item class="slds-form-element slds-form-element_stacked">
+                    <label 
+                        for="userCriteria"
+                        class="slds-form-element__label">
+                        User Criteria
+                    </label>
+                    <div class="slds-form-element__control">
+                        <lightning-formatted-text 
+                            id="userCriteria"
+                            value={permissionSetAssignmentSetting.SOQL_Filter__c}>
+                        </lightning-formatted-text>
+                    </div>
+                </lightning-layout-item>
+                <lightning-layout-item>
+                    <lightning-button-icon
+                        name="manageAssignmentsEdit"
+                        icon-name="utility:edit"
+                        variant="bare"
+                        onclick={handleClick}>
+                    </lightning-button-icon>
+                </lightning-layout-item>
+            </lightning-layout>
+        </lightning-layout-item>
+    </lightning-layout>
+
+    <!-- Modal for editing permission set assignment setting -->
+    <c-modal if:true={permissionSetAssignmentSettingToUpsert}>
+        <!-- Header -->
+        <span slot="header">{permissionSet.label}</span>
+
+        <!-- Body -->
+        <template if:true={error}>
+            <div class="slds-notify_container slds-is-relative">
+                <div 
+                    role="status"
+                    class="slds-notify slds-notify_toast slds-theme_error slds-m-around_none slds-size_full">
+                    <span class="slds-icon_container slds-icon-utility-error slds-m-right_small slds-no-flex slds-align-top">
+                        <lightning-icon 
+                            icon-name="utility:error"
+                            size="small"
+                            variant="inverse">
+                        </lightning-icon>
+                    </span>
+
+                    <div class="slds-notify__content">
+                        <h2 class="slds-text-heading_small">{error}</h2>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        <lightning-textarea 
+            name="userCriteria"
+            label="User Criteria"
+            max-length="4000"
+            message-when-too-long="You have exceeded the limit of 4000 characters!"
+            value={permissionSetAssignmentSettingToUpsert.SOQL_Filter__c}
+            onchange={handleChange}>
+        </lightning-textarea>
+        
+        <!-- Footer -->
+        <span slot="footer">
+            <lightning-button 
+                variant="neutral" 
+                label="Cancel"
+                name="cancel"
+                onclick={handleClick}>
+            </lightning-button>
+            <lightning-button 
+                variant="brand" 
+                label="Save"
+                name="save"
+                onclick={handleClick}
+                class="slds-m-left_x-small">
+            </lightning-button> 
+        </span>
+    </c-modal>
+</template>

@@ -1,0 +1,22 @@
+<template>
+    <article class="slds-card">
+        <div class="slds-card__body slds-card__body_inner">
+            <lightning-tabset>
+                <lightning-tab label="Assignments">
+                    <c-permission-set-assignment-detail permission-set-name={permissionSetName}></c-permission-set-assignment-detail>
+                </lightning-tab>
+                <lightning-tab label="Permissions">
+                    <div class="slds-illustration slds-illustration_small">
+                        <img 
+                            src="/img/chatter/OpenRoad.svg" 
+                            class="slds-illustration__svg"/>
+                        <div class="slds-text-color_weak">
+                            <h3 class="slds-text-heading_small">This feature is still in development</h3>
+                            <p class="slds-text-body_regular">Please check back later</p>
+                        </div>
+                    </div>
+                </lightning-tab>
+            </lightning-tabset>
+        </div>
+    </article>
+</template>
