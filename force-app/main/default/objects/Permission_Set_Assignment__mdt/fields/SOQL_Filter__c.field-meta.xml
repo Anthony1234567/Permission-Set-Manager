@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>SOQL_Filter__c</fullName>
+    <description>Contains the &apos;where&apos; clause logic.</description>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>SOQL &apos;Where&apos; clause. Leaving this field empty will assign the permission set to ALL active users.</inlineHelpText>
+    <label>SOQL Filter</label>
+    <length>4000</length>
+    <type>LongTextArea</type>
+    <visibleLines>30</visibleLines>
+</CustomField>
