@@ -13,7 +13,7 @@ public class PermissionDataAccessService {
     public List<Permission_Set_Assignment_Setting__mdt> queryPermissionSetAssignmentSettingsByName(List<String> specifiedQueryFieldAPINameList, Set<String> permissionSetDeveloperNameSet) {
         try {
             return Database.query('SELECT ' + String.join(specifiedQueryFieldAPINameList, ',') + ' ' +
-                                  'FROM Permission_Set_Assignment__mdt ' +
+                                  'FROM Permission_Set_Assignment_Setting__mdt ' +
                                   'WHERE DeveloperName = :permissionSetDeveloperNameSet');
         } catch (Exception generalException) {
             throw new PermissionDataAccessServiceException(generalException.getMessage());
@@ -48,7 +48,7 @@ public class PermissionDataAccessService {
     public List<Permission_Set_Assignment_Setting__mdt> queryPermissionSetAssignmentSettingByPermissionSet(List<String> specifiedQueryFieldAPINameList, Set<String> permissionSetAPINameSet) {
         try {
             return Database.query('SELECT ' + String.join(specifiedQueryFieldAPINameList, ',') + ' ' +
-                                  'FROM Permission_Set_Assignment__mdt ' +
+                                  'FROM Permission_Set_Assignment_Setting__mdt ' +
                                   'WHERE PermissionSet__c IN :permissionSetAPINameSet');
         } catch (Exception generalException) {
             throw new PermissionDataAccessServiceException(generalException.getMessage());
@@ -79,7 +79,7 @@ public class PermissionDataAccessService {
     public List<Permission_Set_Assignment_Setting__mdt> queryAllPermissionSetAssignmentSettingRecords(List<String> specifiedQueryFieldAPINameList) {
         try {
             return Database.query('SELECT ' + String.join(specifiedQueryFieldAPINameList, ',') + ' ' +
-                                  'FROM Permission_Set_Assignment__mdt');
+                                  'FROM Permission_Set_Assignment_Setting__mdt');
         } catch (Exception generalException) {
             throw new PermissionDataAccessServiceException(generalException.getMessage());
         }
