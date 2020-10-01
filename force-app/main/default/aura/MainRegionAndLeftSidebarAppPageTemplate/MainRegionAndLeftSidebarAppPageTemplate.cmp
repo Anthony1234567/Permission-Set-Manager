@@ -1,0 +1,20 @@
+<!-- 
+    Source: https://developer.salesforce.com/docs/atlas.en-us.lightning.meta/lightning/components_config_for_app_builder_template_component.htm
+-->
+<aura:component 
+    implements="lightning:appHomeTemplate" 
+    description="Main Region and Left Sidebar App Page Template">
+    <aura:attribute name="left" type="Aura.Component[]"/>
+    <aura:attribute name="main" type="Aura.Component[]"/>
+
+    <lightning:layout>
+        <lightning:layoutItem size="3">
+            {!v.left}
+        </lightning:layoutItem>
+        <lightning:layoutItem 
+            size="9"
+            class="slds-p-left_small">
+            {!v.main}
+        </lightning:layoutItem>
+    </lightning:layout>
+</aura:component>

@@ -1,0 +1,6 @@
+<design:component label="Main Region and Left Sidebar App Page Template">
+    <flexipage:template>
+        <flexipage:region name="left" label="Left Sidebar" defaultWidth="SMALL"/>
+        <flexipage:region name="main" label="Main Region" defaultWidth="MEDIUM"/>
+    </flexipage:template>
+</design:component>
