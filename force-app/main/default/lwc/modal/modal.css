@@ -1,0 +1,4 @@
+.slds-modal__content {
+    overflow: inherit;
+    overflow-y: inherit;
+}

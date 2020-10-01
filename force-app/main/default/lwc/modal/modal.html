@@ -1,0 +1,39 @@
+<template>
+    <template if:true={isOpen}>
+        <section 
+            role="dialog" 
+            tabindex="-1" 
+            class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <!-- Header -->
+                <header class="slds-modal__header">
+                    <template if:false={preventClose}>
+                        <lightning-button-icon 
+                            icon-name="utility:close"
+                            variant="bare-inverse"
+                            size="large"
+                            class="slds-modal__close"
+                            onclick={closeModal}>
+                        </lightning-button-icon>
+                    </template>
+                    
+                    <h2 class="slds-text-heading_medium slds-hyphenate">
+                        <slot name="header"></slot>
+                    </h2>
+                </header>
+
+                <!-- Content: slds-modal__content sets overflow -->
+                <div class="slds-modal__content slds-p-around_medium">
+                    <slot></slot>
+                </div>
+
+                <!-- Footer -->
+                <footer class="slds-modal__footer">
+                    <slot name="footer"></slot>
+                </footer>
+            </div>
+        </section>
+
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+</template>
