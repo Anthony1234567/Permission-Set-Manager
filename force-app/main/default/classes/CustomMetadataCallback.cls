@@ -16,14 +16,13 @@ public class CustomMetadataCallback implements Metadata.DeployCallback {
             Set<String> permissionSetAssignmentSettingNameSet = new Set<String>(); 
             
             for (Metadata.DeployMessage successMessage : result.details.componentSuccesses) {
-                if (successMessage.fullName.startsWith('Permission_Set_Assignment.')) {
-                    permissionSetAssignmentSettingNameSet.add(successMessage.fullName.removeStart('Permission_Set_Assignment.'));
+                if (successMessage.fullName.startsWith('Permission_Set_Assignment_Setting.')) {
+                    permissionSetAssignmentSettingNameSet.add(successMessage.fullName.removeStart('Permission_Set_Assignment_Setting.'));
                 }	
             }
 
             if (!permissionSetAssignmentSettingNameSet.isEmpty()) {
-                // TODO: Uncomment
-                // Database.executeBatch(new BatchManagePermissionSetAssignments(permissionSetAssignmentSettingNameSet), 1);
+                Database.executeBatch(new BatchManagePermissionSetAssignments(permissionSetAssignmentSettingNameSet), 1);
             }
         } else {
             // TODO: Send notification

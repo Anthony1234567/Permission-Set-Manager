@@ -9,8 +9,6 @@ public class PermissionService {
     final Permission_Set_Assignment_Setting__mdt permissionSetAssignmentSetting;
     
     public List<PermissionSetAssignment> assignmentsToUpdate = new List<PermissionSetAssignment>();
-    public List<Database.SaveResult> saveResults = new List<Database.SaveResult>();
-    public List<Database.DeleteResult> deleteResults = new List<Database.DeleteResult>();
 
     /**
      * PermissionServiceException
@@ -28,15 +26,22 @@ public class PermissionService {
     public PermissionService(String permissionSetAssignmentSettingName) {
         if (String.isNotBlank(permissionSetAssignmentSettingName)) {
             // Query Permission Set along with all related assignment records 
-            List<Permission_Set_Assignment_Setting__mdt> permissionSetAssignmentSettingList = new PermissionDataAccessService()
-                .queryPermissionSetAssignmentSettingsByName(new List<String>{ 'SOQL_Filter__c', 
-                                                                              'PermissionSet__c' }, 
-                                                            new Set<String>{ permissionSetAssignmentSettingName }); 
-            List<PermissionSet> permissionSetWithAssignmentsList = new PermissionDataAccessService()
-                .queryPermissionSetAndAssignmentsByName(new List<String>{'Label',
-                                                                         'LicenseId'}, 
-                                                        Utils.castStringSet(Utils.toFieldValueObjectSet(Permission_Set_Assignment_Setting__mdt.PermissionSet__c, 
-                                                                                                        permissionSetAssignmentSettingList)));
+            List<Permission_Set_Assignment_Setting__mdt> permissionSetAssignmentSettingList = [
+                SELECT PermissionSet__c,
+                    SOQL_Filter__c
+                FROM Permission_Set_Assignment_Setting__mdt
+                WHERE DeveloperName = :new Set<String>{ permissionSetAssignmentSettingName }
+            ];
+            List<PermissionSet> permissionSetWithAssignmentsList = [
+                SELECT Label,
+                    LicenseId, (
+                        SELECT AssigneeId
+                        FROM Assignments
+                    )
+                FROM PermissionSet
+                WHERE IsOwnedByProfile = false AND 
+                    Name IN :Utils.castStringSet(Utils.toFieldValueObjectSet(Permission_Set_Assignment_Setting__mdt.PermissionSet__c, permissionSetAssignmentSettingList))
+            ];
             
             if (!permissionSetWithAssignmentsList.isEmpty() && !permissionSetAssignmentSettingList.isEmpty()) {
                 this.permissionSet = permissionSetWithAssignmentsList.get(0);
@@ -56,18 +61,27 @@ public class PermissionService {
      * @return: Instance of PermissionService
      */
     public PermissionService calculatePermissionSetAssignments() {
+        String activeUserQueryFilter = String.isNotBlank(this.permissionSetAssignmentSetting.SOQL_Filter__c) ? 'AND (' + this.permissionSetAssignmentSetting.SOQL_Filter__c + ')' : '';
         // We have the current assigned list. Based on the current query filter, we will need
         // to build a list of users that should be added and a list of those to be removed.
         Map<Id, PermissionSetAssignment> userAssignmentAddMap = new Map<Id, PermissionSetAssignment>();
         Map<Id, PermissionSetAssignment> userAssignmentRemoveMap = new Map<Id, PermissionSetAssignment>();
         // Query users who are already assigned the Permission Set
-        Set<Id> currentAssignmentUserIdSet = Utils.castIdSet(Utils.toFieldValueObjectSet(PermissionSetAssignment.AssigneeId, 
-                                                                                         this.permissionSet.Assignments));
+        Set<Id> currentAssignmentUserIdSet = Utils.castIdSet(
+            Utils.toFieldValueObjectSet(
+                PermissionSetAssignment.AssigneeId, 
+                this.permissionSet.Assignments
+            )
+        );
         // Query users who should be assigned the Permission Set based on the custom filter
-        // FB 278407: Ensure license Ids for User assignments match the Permission Set
-        Set<Id> validAssignmentUserIdSet = Utils.toIdSet(new UserDataAccessService()
-            .queryActiveUserRecordsCustomFilter(new List<String>{ 'Id' }, 
-                                                this.permissionSetAssignmentSetting.SOQL_Filter__c));
+        // Ensure license Ids for User assignments match the Permission Set
+        Set<Id> validAssignmentUserIdSet = Utils.toIdSet(
+            Database.query(
+                'SELECT Id ' +
+                'FROM User ' +
+                'WHERE IsActive = true ' + activeUserQueryFilter
+            )
+        );
         
         // Determine which users currently assigned the Permission Set do not meet the filter criteria
         for (PermissionSetAssignment assignment : this.permissionSet.Assignments) {
@@ -90,14 +104,13 @@ public class PermissionService {
         // Delete PSAs for users that should not have the Permission Set but currently do (allow partial)
         if (!userAssignmentRemoveMap.isEmpty()) {
             this.assignmentsToUpdate.addAll(userAssignmentRemoveMap.values());
-            this.deleteResults.addAll(Database.delete(userAssignmentRemoveMap.values(), false));
+            Database.delete(userAssignmentRemoveMap.values(), false);
         }
         
         // Insert PSAs for users that should have the Permission Set but currently don't (allow partial)
         if (!userAssignmentAddMap.isEmpty()) {
             this.assignmentsToUpdate.addAll(userAssignmentAddMap.values());
-            // Depending on their license type, users may or may not be able to be assigned to permission sets.
-            this.saveResults.addAll(Database.insert(userAssignmentAddMap.values(), false));
+            Database.insert(userAssignmentAddMap.values(), false);
         }
         
         return this;

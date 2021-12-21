@@ -13,16 +13,20 @@ public class PermissionSetAssignmentManagerController {
     @AuraEnabled(cacheable=true)
     public static void validateQueryFilter(String userProvidedQueryFilterInput) {
         try {
-            new UserDataAccessService()
-                .queryActiveUserRecordsCustomFilter(new List<String>{'Id'}, 
-                                                    userProvidedQueryFilterInput);
-        } catch (Exception dataAccessServiceException) {
-            throw new AuraHandledException(dataAccessServiceException.getMessage());
+            String activeUserQueryFilter = String.isNotBlank(userProvidedQueryFilterInput) ? 'AND (' + userProvidedQueryFilterInput + ')' : '';
+
+            Database.query(
+                'SELECT Id ' +
+                'FROM User ' +
+                'WHERE IsActive = true ' + activeUserQueryFilter
+            );
+        } catch (Exception caughtException) {
+            throw new AuraHandledException(caughtException.getMessage());
         }
     }
     
     /**
-     * @description: upsertPermissionSetAssignmentSettingRecords
+     * @description: Upserts 'deploys' Permission Set Assignment Setting CMT records. Deploy triggers the CustomMetadataCallback class which fires the batch to actually manage assignments
      * @param permissionSetAssignmentRecordToUpsertList: Permission Set Assignment record that will be upserted
      * @param permissionSetRecordToInsert: optional new permission set record to insert and assign per the SOQL filter (optional - null means no new perm set is to be created)
      * @return: Deployment Id for enqueued metadata deployment job
@@ -33,14 +37,13 @@ public class PermissionSetAssignmentManagerController {
             if (String.isBlank(permissionSetAssignmentRecordToUpsert.DeveloperName)) {
                 String hexIdentifier = Utils.generateRandomHexString(36);
 
-                // PSA Developer Names must be unique. Since  the corresponding permission set can have an API name
+                // PSA Developer Names must be unique. Since the corresponding permission set can have an API name
                 // longer than 40 characters, the Developer Name of the setting must be set to random value to avoid name collision
                 permissionSetAssignmentRecordToUpsert.MasterLabel = 'PSA-' + hexIdentifier;
                 permissionSetAssignmentRecordToUpsert.DeveloperName = 'PSA_' + hexIdentifier;
             }
 
-            return new CustomMetadataService()
-                .deploy(permissionSetAssignmentRecordToUpsert);
+            return new CustomMetadataService().deploy(permissionSetAssignmentRecordToUpsert);
         } catch (Exception caughtException) {
             throw new AuraHandledException(caughtException.getMessage());
         }
@@ -53,22 +56,38 @@ public class PermissionSetAssignmentManagerController {
      */
     @AuraEnabled(cacheable=true)
     public static List<PermissionSetModel> getPermissionSets() {
-        List<PermissionSetModel> permissionSetListItems = new List<PermissionSetModel>();
-        Set<String> managedPermissionSetNameSet = Utils.castStringSet(Utils.toFieldValueObjectSet(Permission_Set_Assignment_Setting__mdt.PermissionSet__c, 
-                                                                                                  new PermissionDataAccessService().queryAllPermissionSetAssignmentSettingRecords(new List<String>{'MasterLabel',
-                                                                                                                                                                                                   'DeveloperName',
-                                                                                                                                                                                                   'PermissionSet__c',
-                                                                                                                                                                                                   'SOQL_Filter__c'})));
-
-        for (PermissionSet permissionSet : new PermissionDataAccessService().queryAllPermissionSetRecords(new List<String>{'Label',
-                                                                                                                           'Name',
-                                                                                                                           'Description'})) {
-            PermissionSetModel permissionSetListItem = new PermissionSetModel(permissionSet);
-            permissionSetListItem.isManaged = managedPermissionSetNameSet.contains(permissionSet.Name);
-            permissionSetListItems.add(permissionSetListItem);
+        try {
+            List<PermissionSetModel> permissionSetListItems = new List<PermissionSetModel>();
+            List<PermissionSet> allPermissionSets = [
+                SELECT Description,
+                    Label,
+                    Name
+                FROM PermissionSet
+                WHERE IsOwnedByProfile = false
+                ORDER BY Label
+            ];
+            // Managed Permission Sets
+            List<Permission_Set_Assignment_Setting__mdt> allPermissionSetAssignmentSettings = [
+                SELECT PermissionSet__c
+                FROM Permission_Set_Assignment_Setting__mdt
+            ];
+            Set<String> managedPermissionSetNameSet = Utils.castStringSet(
+                Utils.toFieldValueObjectSet(
+                    Permission_Set_Assignment_Setting__mdt.PermissionSet__c, 
+                    allPermissionSetAssignmentSettings
+                )
+            );
+    
+            for (PermissionSet permissionSet : allPermissionSets) {
+                PermissionSetModel permissionSetListItem = new PermissionSetModel(permissionSet);
+                permissionSetListItem.isManaged = managedPermissionSetNameSet.contains(permissionSet.Name);
+                permissionSetListItems.add(permissionSetListItem);
+            }
+    
+            return permissionSetListItems;
+        } catch (Exception caughtException) {
+            throw new AuraHandledException(caughtException.getMessage());
         }
-
-        return permissionSetListItems;
     }
 
     /**
@@ -79,11 +98,18 @@ public class PermissionSetAssignmentManagerController {
      */
     @AuraEnabled(cacheable=true)
     public static PermissionSetModel getPermissionSet(String permissionSetName) {
-        return new PermissionSetModel(new PermissionDataAccessService()
-            .queryPermissionSetByName(new List<String>{'Label',
-                                                       'Name',
-                                                       'Description' },
-                                      permissionSetName));
+        try {
+            return new PermissionSetModel([
+                SELECT Description,
+                    Label,
+                    Name
+                FROM PermissionSet
+                WHERE Name = :permissionSetName
+                LIMIT 1
+            ]);
+        } catch (Exception caughtException) {
+            throw new AuraHandledException(caughtException.getMessage());
+        }
     }
 
     /**
@@ -94,24 +120,25 @@ public class PermissionSetAssignmentManagerController {
      */
     @AuraEnabled
     public static Permission_Set_Assignment_Setting__mdt getPermissionSetAssignmentSetting(String permissionSetName) {
-        List<Permission_Set_Assignment_Setting__mdt> permissionSetAssignmentSettings = new PermissionDataAccessService().queryPermissionSetAssignmentSettingByPermissionSet(new List<String>{'MasterLabel',
-                                                                                                                                                                                     'DeveloperName',
-                                                                                                                                                                                     'PermissionSet__c',
-                                                                                                                                                                                     'SOQL_Filter__c'},
-                                                                                                                                                                    new Set<String>{permissionSetName});
-
-        if (!permissionSetAssignmentSettings.isEmpty()) {
-            return permissionSetAssignmentSettings.get(0);
+        try {
+            return [
+                SELECT DeveloperName,
+                    MasterLabel,
+                    PermissionSet__c,
+                    SOQL_Filter__c
+                FROM Permission_Set_Assignment_Setting__mdt
+                WHERE PermissionSet__c IN :new Set<String>{permissionSetName}
+            ];
+        } catch (Exception caughtException) {
+            throw new AuraHandledException(caughtException.getMessage());
         }
-
-        return null;
     }
 
     /**
      * PermissionSetModel
      * @description: Model for describing a permission set for use in a list view
      */
-    class PermissionSetModel {
+    public class PermissionSetModel {
         @AuraEnabled
         public String id;
         @AuraEnabled
@@ -129,7 +156,7 @@ public class PermissionSetAssignmentManagerController {
          * @description: Constructor
          * @param permissionSet: Record with managed status in question
          */
-        PermissionSetModel(PermissionSet permissionSet) {
+        public PermissionSetModel(PermissionSet permissionSet) {
             this.id = permissionSet.Id;
             this.label = permissionSet.Label;
             this.name = permissionSet.Name;
