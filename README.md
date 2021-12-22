@@ -2,7 +2,7 @@
 Manage Permission Set Assignments 
 
 ## How to use:
-Step 1: Install this repo into your Salesforce instance \
+Step 1: [Install this repo into your Salesforce instance](https://githubsfdeploy.herokuapp.com?owner=Anthony1234567&repo=Permission-Set-Manager&ref=master) \
 Step 2: Ensure your profile has access to the "Permission Set Manager" custom Tab. You may need to modify profile settings to do this \
 Step 3: Navigate to the "Permission Set Manager" Tab on the app launcher \
 Step 4: Search for the permission that you wish to assign \
