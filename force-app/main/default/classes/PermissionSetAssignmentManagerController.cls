@@ -1,6 +1,6 @@
 /**
  * PermissionSetAssignmentManagerController
- * descriptionServer side controller for Permission Set Assignment Manager Lightning Component
+ * description: Server side controller for Permission Set Assignment Manager Lightning Component
  * @author: Anthony Martinez
  */
 public class PermissionSetAssignmentManagerController {
