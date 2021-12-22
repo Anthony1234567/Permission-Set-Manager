@@ -1,7 +1,13 @@
 {
   "orgName": "Permission Set Manager",
   "edition": "Developer",
+  "features": [
+    "EnableSetPasswordInApi"
+  ],
   "settings": {
+    "lightningExperienceSettings": {
+      "enableS1DesktopEnabled": true
+    },
     "mobileSettings": {
       "enableS1EncryptedStoragePref2": false
     }
