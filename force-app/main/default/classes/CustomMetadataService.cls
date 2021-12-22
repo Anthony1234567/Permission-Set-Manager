@@ -17,7 +17,7 @@ public class CustomMetadataService {
      * @return: Job Id for enqueued deployment job.
      */
     public Id deploy(SObject customMetadataTypeRecord) {
-        return deploy(customMetadataTypeRecord == null ? null : new List<SObject>{customMetadataTypeRecord});
+        return deploy(customMetadataTypeRecord == null ? null : new List<SObject>{ customMetadataTypeRecord });
     }
     
     /**

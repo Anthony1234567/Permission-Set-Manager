@@ -26,8 +26,7 @@ class PermissionSetAssignmentHealthCheck {
     @IsTest
     static void checkAssignmentAccuracy() {
         Double averageAccuracy = 0;
-        Map<String, SObject> allPermissionSetAssignmentSettingsByPermissionSetMap = Utils.toFieldValueStringMapUnique(Permission_Set_Assignment_Setting__mdt.PermissionSet__c, 
-                                                                                                                      allPermissionSetAssignmentSettings);
+        Map<String, SObject> allPermissionSetAssignmentSettingsByPermissionSetMap = Utils.toFieldValueStringMapUnique(Permission_Set_Assignment_Setting__mdt.PermissionSet__c, allPermissionSetAssignmentSettings);
         List<AggregateResult> managedPermissionSetAssignmentCounts = [
             SELECT COUNT(Id) assignedCount,
                 PermissionSet.Name permissionSetName,
@@ -65,14 +64,12 @@ class PermissionSetAssignmentHealthCheck {
      */
     @IsTest
     static void checkExistanceOfPermissionSets() {
+        List<PermissionSet> allPermissionSetList = [
+            SELECT Name
+            FROM PermissionSet
+        ];
         Map<String, String> psaLabelToNonExistingPermissionSetMap = new Map<String, String>();
-        Set<String> allPermissionSetNamesSet = Utils.toFieldValueStringSet(
-            PermissionSet.Name, 
-            [
-                SELECT Name
-                FROM PermissionSet
-            ]
-        );
+        Set<String> allPermissionSetNamesSet = Utils.toFieldValueStringSet(PermissionSet.Name, allPermissionSetList);
 
         for (Permission_Set_Assignment_Setting__mdt permissionSetAssignmentSetting : PermissionSetAssignmentHealthCheck.allPermissionSetAssignmentSettings) {
             if (!allPermissionSetNamesSet.contains(permissionSetAssignmentSetting.PermissionSet__c)) {

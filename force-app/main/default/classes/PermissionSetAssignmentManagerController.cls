@@ -1,6 +1,6 @@
 /**
  * PermissionSetAssignmentManagerController
- * @description: Server side controller for Permission Set Assignment Manager Lightning Component
+ * descriptionServer side controller for Permission Set Assignment Manager Lightning Component
  * @author: Anthony Martinez
  */
 public class PermissionSetAssignmentManagerController {
@@ -71,12 +71,7 @@ public class PermissionSetAssignmentManagerController {
                 SELECT PermissionSet__c
                 FROM Permission_Set_Assignment_Setting__mdt
             ];
-            Set<String> managedPermissionSetNameSet = Utils.castStringSet(
-                Utils.toFieldValueObjectSet(
-                    Permission_Set_Assignment_Setting__mdt.PermissionSet__c, 
-                    allPermissionSetAssignmentSettings
-                )
-            );
+            Set<String> managedPermissionSetNameSet = Utils.toFieldValueStringSet(Permission_Set_Assignment_Setting__mdt.PermissionSet__c, allPermissionSetAssignmentSettings);
     
             for (PermissionSet permissionSet : allPermissionSets) {
                 PermissionSetModel permissionSetListItem = new PermissionSetModel(permissionSet);

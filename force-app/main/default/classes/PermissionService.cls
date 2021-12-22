@@ -8,14 +8,6 @@ public class PermissionService {
     final PermissionSet permissionSet;
     final Permission_Set_Assignment_Setting__mdt permissionSetAssignmentSetting;
     
-    public List<PermissionSetAssignment> assignmentsToUpdate = new List<PermissionSetAssignment>();
-
-    /**
-     * PermissionServiceException
-     * @description: Common exception class
-     */
-    public class PermissionServiceException extends Exception {}
-    
     /**
      * @description: Queries the permission set as well as the corresponding 
      * 				 Permission Set Assignment Custom Metadata Type record.
@@ -40,7 +32,7 @@ public class PermissionService {
                     )
                 FROM PermissionSet
                 WHERE IsOwnedByProfile = false AND 
-                    Name IN :Utils.castStringSet(Utils.toFieldValueObjectSet(Permission_Set_Assignment_Setting__mdt.PermissionSet__c, permissionSetAssignmentSettingList))
+                    Name IN :Utils.toFieldValueStringSet(Permission_Set_Assignment_Setting__mdt.PermissionSet__c, permissionSetAssignmentSettingList)
             ];
             
             if (!permissionSetWithAssignmentsList.isEmpty() && !permissionSetAssignmentSettingList.isEmpty()) {
@@ -67,12 +59,7 @@ public class PermissionService {
         Map<Id, PermissionSetAssignment> userAssignmentAddMap = new Map<Id, PermissionSetAssignment>();
         Map<Id, PermissionSetAssignment> userAssignmentRemoveMap = new Map<Id, PermissionSetAssignment>();
         // Query users who are already assigned the Permission Set
-        Set<Id> currentAssignmentUserIdSet = Utils.castIdSet(
-            Utils.toFieldValueObjectSet(
-                PermissionSetAssignment.AssigneeId, 
-                this.permissionSet.Assignments
-            )
-        );
+        Set<Id> currentAssignmentUserIdSet = Utils.toFieldValueIdSet(PermissionSetAssignment.AssigneeId, this.permissionSet.Assignments);
         // Query users who should be assigned the Permission Set based on the custom filter
         // Ensure license Ids for User assignments match the Permission Set
         Set<Id> validAssignmentUserIdSet = Utils.toIdSet(
@@ -94,25 +81,32 @@ public class PermissionService {
         // Determine which of the users that qualify are currently not assigned the Permission Set
         for (Id userId : validAssignmentUserIdSet) {
             if (!currentAssignmentUserIdSet.contains(userId)) {
+                PermissionSetAssignment permissionSetAssignment = new PermissionSetAssignment(
+                    AssigneeId = userId,
+                    PermissionSetId = this.permissionSet.Id
+                );
+
                 // Arrange to be added
-                userAssignmentAddMap.put(userId, 
-                                         new PermissionSetAssignment(AssigneeId = userId,
-                                                                     PermissionSetId = this.permissionSet.Id));
+                userAssignmentAddMap.put(userId, permissionSetAssignment);
             }
         }
         
         // Delete PSAs for users that should not have the Permission Set but currently do (allow partial)
         if (!userAssignmentRemoveMap.isEmpty()) {
-            this.assignmentsToUpdate.addAll(userAssignmentRemoveMap.values());
             Database.delete(userAssignmentRemoveMap.values(), false);
         }
         
         // Insert PSAs for users that should have the Permission Set but currently don't (allow partial)
         if (!userAssignmentAddMap.isEmpty()) {
-            this.assignmentsToUpdate.addAll(userAssignmentAddMap.values());
             Database.insert(userAssignmentAddMap.values(), false);
         }
         
         return this;
     }
+
+    /**
+     * PermissionServiceException
+     * @description: Common exception class
+     */
+    public class PermissionServiceException extends Exception {}
 }
