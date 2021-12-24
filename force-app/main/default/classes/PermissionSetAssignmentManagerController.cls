@@ -116,16 +116,19 @@ public class PermissionSetAssignmentManagerController {
     @AuraEnabled
     public static Permission_Set_Assignment_Setting__mdt getPermissionSetAssignmentSetting(String permissionSetName) {
         try {
-            return [
+            List<Permission_Set_Assignment_Setting__mdt> matchingPermissionSetAssignmentSettingsList = [
                 SELECT DeveloperName,
                     MasterLabel,
                     PermissionSet__c,
                     SOQL_Filter__c
                 FROM Permission_Set_Assignment_Setting__mdt
-                WHERE PermissionSet__c IN :new Set<String>{permissionSetName}
+                WHERE PermissionSet__c = :permissionSetName
+                LIMIT 1
             ];
+
+            return matchingPermissionSetAssignmentSettingsList.isEmpty() ? null : matchingPermissionSetAssignmentSettingsList.get(0);
         } catch (Exception caughtException) {
-            throw new AuraHandledException(caughtException.getMessage());
+            throw new AuraHandledException(caughtException.getTypeName() + ': ' + caughtException.getMessage());
         }
     }
 
